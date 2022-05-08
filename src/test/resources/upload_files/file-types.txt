@@ -1,0 +1,4 @@
+Supported file types for Drupal /admin/content/media:
+mp3
+pdf doc docx epub odt pages numbers txt xlsx xls pptx pps xml json
+png gif jpg jpeg

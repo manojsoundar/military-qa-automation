@@ -1,0 +1,370 @@
+@Library('Jenkins-Library-OCS@master') _
+import mgs.qa.jsl.GlobalEnvironmentVariables
+import mgs.qa.jsl.ReportPortalProject
+import mgs.qa.jsl.ReportPortalProperties
+import static mgs.qa.jsl.ReportPortalProject.getReportPortalProjectStatusByName
+import static mgs.qa.jsl.ReportPortalProperties.RP_ENDPOINT
+import static mgs.qa.jsl.ReportPortalProperties.RP_UUID
+
+// TODO add Scheduler / CRON
+
+def notifySlack(String buildStatus = 'STARTED') {
+    // Build status of null means success.
+    buildStatus = buildStatus ?: 'SUCCESS'
+
+    def color
+
+    if (buildStatus == 'STARTED') {
+        color = '#D4DADF'
+    } else if (buildStatus == 'SUCCESS') {
+        color = '#BDFFC3'
+    } else if (buildStatus == 'UNSTABLE') {
+        color = '#FFFE89'
+    } else {
+        color = '#FF9FA1'
+    }
+
+    def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+
+    slackSend(color: color, message: msg)
+}
+
+pipeline {
+    agent any
+    options {
+        ansiColor('xterm')
+    }
+    stages {
+        stage('Parameters'){
+            steps {
+                script {
+                    properties([
+                        parameters([
+                            [$class: 'ChoiceParameter',
+                                choiceType: 'PT_SINGLE_SELECT',
+                                description: 'Select the military branch from the dropdown list',
+                                filterLength: 1,
+                                filterable: true,
+                                name: 'BRANCH_NAME',
+                                script: [
+                                    $class: 'GroovyScript',
+                                    fallbackScript: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            "return['Could not get military branches']"
+                                    ],
+                                    script: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            militaryBranchName()
+                                    ]
+                                ]
+                            ],
+                            [$class: 'CascadeChoiceParameter',
+                                choiceType: 'PT_SINGLE_SELECT',
+                                description: 'Select the military testng testsuite xml from the dropdown list',
+                                filterLength: 1,
+                                filterable: true,
+                                name: 'TESTSUITE',
+                                referencedParameters: 'BRANCH_NAME',
+                                script: [
+                                    $class: 'GroovyScript',
+                                    fallbackScript: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            "return['Could not get military testng testsuite xml']"
+                                    ],
+                                    script: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            militaryTestSuite()
+                                    ]
+                                ]
+                            ],
+                            [$class: 'CascadeChoiceParameter',
+                                choiceType: 'PT_SINGLE_SELECT',
+                                description: 'Select the military pom xml from the dropdown list',
+                                filterLength: 1,
+                                filterable: true,
+                                name: 'POM',
+                                referencedParameters: 'BRANCH_NAME',
+                                script: [
+                                    $class: 'GroovyScript',
+                                    fallbackScript: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            "return['Could not get military pom xml']"
+                                    ],
+                                    script: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            militaryPom()
+                                    ]
+                                ]
+                            ],
+                            [$class: 'CascadeChoiceParameter',
+                                choiceType: 'PT_SINGLE_SELECT',
+                                description: 'Select the military environment from the dropdown List',
+                                filterLength: 1,
+                                filterable: false,
+                                name: 'ENVIRONMENT',
+                                script: [
+                                    $class: 'GroovyScript',
+                                    fallbackScript: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            "return['Could not get military environment']"
+                                    ],
+                                    script: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            militaryEnvironment()
+                                    ]
+                                ]
+                            ],
+                            [$class: 'CascadeChoiceParameter',
+                                choiceType: 'PT_SINGLE_SELECT',
+                                description: 'Select the military browser from the dropdown List',
+                                filterLength: 1,
+                                filterable: false,
+                                name: 'BROWSER',
+                                script: [
+                                    $class: 'GroovyScript',
+                                    fallbackScript: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            "return['Could not get military browser']"
+                                    ],
+                                    script: [
+                                        classpath: [],
+                                        sandbox: false,
+                                        script:
+                                            browser()
+                                    ]
+                                ]
+                            ]
+                        ])
+                    ])
+                }
+            }
+        }
+        stage('Verification Parameters') {
+            steps {
+                script {
+                    try {
+                        wrap([$class: 'BuildUser']) {
+                            echo "userId=${BUILD_USER_ID},fullName=${BUILD_USER},email=${BUILD_USER_EMAIL}"
+                        }
+                    }catch(e) {
+                        echo "skip displaying BuildUser Data"
+                        //def gev = new GlobalEnvironmentVariables()
+                        //echo gev.getGlobalEnvironmentVariables("${BUILD_USER_ID}_EPOCH_RUN_CONTEXT_OCS")
+                        echo 'status mhme: ' + ReportPortalProject.getReportPortalProjectStatusByName('mgs-qa-mhme')
+                    }
+
+                    echo 'BRANCH_NAME: ' + BRANCH_NAME
+                    echo 'TESTSUITE: ' + TESTSUITE
+                    echo 'POM: ' + POM
+                    echo 'ENVIRONMENT: ' + ENVIRONMENT
+                    echo 'BROWSER: ' + BROWSER
+                }
+            }
+        }
+        stage('Source') {
+            steps {
+                script {
+                    try {
+                        parallel(
+                            "COMMONS": {
+                                echo 'Checking out MGS-QA-COMMONS'
+                                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: BRANCH_NAME]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'commons']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'e1536e5b-0687-4bb1-a94a-1f3012256a78', url: 'https://github.com/Monster-OCS/mgs-qa-commons']]]
+                            },
+                            "MILITARY": {
+                                echo 'Checking out MGS-QA-MILITARY'
+                                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: BRANCH_NAME]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'mgs-qa-military']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'e1536e5b-0687-4bb1-a94a-1f3012256a78', url: 'https://github.com/Monster-OCS/mgs-qa-military']]]
+                            }
+                        )
+                    }
+                    catch (ex) {
+                        parallel(
+                            "COMMONS": {
+                                echo 'Checking out MGS-QA-COMMONS'
+                                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: "origin/master"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'commons']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'e1536e5b-0687-4bb1-a94a-1f3012256a78', url: 'https://github.com/Monster-OCS/mgs-qa-commons']]]
+                            },
+                            "MILITARY": {
+                                echo 'Checking out MGS-QA-MILITARY'
+                                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: BRANCH_NAME]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'mgs-qa-military']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'e1536e5b-0687-4bb1-a94a-1f3012256a78', url: 'https://github.com/Monster-OCS/mgs-qa-military']]]
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        stage('build COMMONS') {
+            steps {
+                withMaven(jdk: 'OpenJDK11', maven: 'Maven3', mavenSettingsConfig: '3d315daf-d7be-43b5-9ddc-755fe919ee11'/*, mavenLocalRepo: '.repository'*/) {
+                    sh '''
+                    ls -l commons
+                    mvn -f commons/pom.xml clean install -DskipTests -Dmaven.javadoc.skip=true
+                    '''
+                }
+            }
+        }
+        stage('build MILITARY') {
+            steps {
+                withMaven(jdk: 'OpenJDK11', maven: 'Maven3', mavenSettingsConfig: '3d315daf-d7be-43b5-9ddc-755fe919ee11') {
+                    dir("mgs-qa-military") {
+                        sh '''
+                        ls -l
+                        #mvn -f pom.xml clean compile -DskipTests -Dmaven.javadoc.skip=true
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Settings XML') {
+            steps {
+                script {
+                    // Upgrade Plugin Config
+                    withCredentials([usernamePassword( credentialsId: '586902f6-170d-40a0-b7f2-161e1c5f03dd', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh '''
+                        ls -l
+                        cp commons/settings.xml .
+                        sed -i "s/{YOUR_EMAIL_HERE}/$USERNAME/g" settings.xml
+                        sed -i "s/{ACCESS_TOKEN_HERE}/$PASSWORD/g" settings.xml
+                        '''
+                    }
+                }
+            }
+        }
+        stage("Report Portal Settings") {
+            when {
+                // TODO to remove the condition params.BRANCH_NAME == 'reportportal_jenkinsfile'
+                expression {
+                    ( params.BRANCH_NAME == 'master' || params.BRANCH_NAME == 'pre-qa-military' ) && ReportPortalProject.getReportPortalProjectStatusByName('mgs-qa-military') == true
+                }
+            }
+            steps {
+                wrap([$class: 'BuildUser']) {
+                    script {
+                        def RESOURCES_FOLDER = "src/test/resources/"
+                        dir("mgs-qa-military") {
+                            committers = sh (returnStdout: true, script: '''git log -1 --pretty=format:%an''').trim()
+                            echo "${committers}"
+                            environmentForReportPortal = sh (returnStdout: true, script: '''sed -nr '/^<!--/! s/[ ]*<parameter name=\"ENV\" value=\"(.*)\"\\/>/\\1/p' ./''' + params.TESTSUITE).trim()
+                            echo "${environmentForReportPortal}"
+                            if ( params.ENVIRONMENT && params.ENVIRONMENT != null && params.ENVIRONMENT != '' ) {
+                                environmentForReportPortal = params.ENVIRONMENT
+                            }
+                            browserForReportPortal = sh (returnStdout: true, script: '''sed -nr '/^<!--/! s/[ ]*<parameter name=\"BROWSER\" value=\"(.*)\"\\/>/\\1/p' ./''' + params.TESTSUITE).trim()
+                            echo "${browserForReportPortal}"
+                            if ( params.BROWSER && params.BROWSER != null && params.BROWSER != '' && params.BROWSER != 'default' ) {
+                                browserForReportPortal = params.BROWSER
+                            }
+                            echo "${browserForReportPortal}"
+                            sh 'chmod +x ' + RESOURCES_FOLDER + 'reportportal.properties'
+                            // TODO to speak with End User what they do want to see
+                            // proposal if Environment not selected, grap the information from the selected testsuite
+                            REPORTPORTAL_PROPERTIES = ""
+                            try {
+                                REPORTPORTAL_PROPERTIES =
+                                    '''rp.endpoint = ''' + ReportPortalProperties.RP_ENDPOINT + '''
+                                    rp.uuid = ''' + ReportPortalProperties.RP_UUID + '''
+                                    rp.launch = ''' + params.TESTSUITE + '''
+                                    rp.project = mgs-qa-military
+                                    rp.description = ''' + "${BUILD_TAG}" + '''
+                                    rp.attributes = BRANCHE_NAME:''' + params.BRANCH_NAME + '''; BROWSER: ''' + "${browserForReportPortal}; ENVIRONMENT: ${environmentForReportPortal}; LastCommitters: ${committers}; JENKINS_USERID: ${BUILD_USER_ID}; JENKINS_JOBS_NAME_NUMBER:${JOB_NAME}-${BUILD_NUMBER}"
+                                //sh 'cat <<< \'' + (REPORTPORTAL_PROPERTIES.readLines().collect{ it.trim() }).join('\n') + '\' > ' + RESOURCES_FOLDER + 'reportportal.properties'
+                            }
+                            catch(e) {
+                                REPORTPORTAL_PROPERTIES =
+                                    '''rp.endpoint = ''' + ReportPortalProperties.RP_ENDPOINT + '''
+                                    rp.uuid = ''' + ReportPortalProperties.RP_UUID + '''
+                                    rp.launch = ''' + params.TESTSUITE + '''
+                                    rp.project = mgs-qa-military
+                                    rp.description = ''' + "${BUILD_TAG}" + '''
+                                    rp.attributes = BRANCHE_NAME:''' + params.BRANCH_NAME + '''; BROWSER:''' + params.BROWSER + '''; ENVIRONMENT:''' + params.ENVIRNONMENT + "; LastCommiters: ${committers}; JENKINS_JOBS_NAME_NUMBER:${JOB_NAME}-${BUILD_NUMBER}"
+                                //sh 'cat <<< \'' + (REPORTPORTAL_PROPERTIES.readLines().collect{ it.trim() }).join('\n') + '\' > ' + RESOURCES_FOLDER + 'reportportal.properties'
+                            }
+                            finally {
+                                sh 'awk -v var="' + (REPORTPORTAL_PROPERTIES.readLines().collect{ it.trim() }).join('\n') + '" \'BEGIN { print var}\' > ' + RESOURCES_FOLDER + 'reportportal.properties'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Run MILITARY') {
+            steps {
+                script {
+                    withMaven(jdk: 'OpenJDK11', maven: 'Maven3', mavenSettingsConfig: '3d315daf-d7be-43b5-9ddc-755fe919ee11'/*, mavenLocalRepo: '.repository'*/) {
+                        dir("mgs-qa-military") {
+                            // TODO add this properties -Dtestng.dtd.http=true -Xmx1024m -XX:MaxPermSize=256m -Dchromeoptions.args=--disable-backgrounding-occluded-windows
+                            // TODO ASK who is the requestor either to add here, or while settings chromedriver or in pom
+                            def MVN_ARGS = ''' -f ''' + params.POM
+                            if ( params.ENVIRONMENT && params.ENVIRONMENT != 'default' ) {
+                                MVN_ARGS += ''' -Denvironment=''' + params.ENVIRONMENT
+                            }
+                            if ( params.BROWSER && params.BROWSER != 'default' ) {
+                                MVN_ARGS += ''' -Dbrowser=''' + params.BROWSER
+                            }
+                            MVN_ARGS += ''' -DsuiteXml=''' + TESTSUITE
+                            sh 'echo mvn test ' + MVN_ARGS
+                            sh 'mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn test ' + MVN_ARGS
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'I will always say Goodbye!'
+            script {
+                try {
+                    withCredentials([string(credentialsId: 'mgs-qa-jenkins-slack', variable: 'slackCredentials')]) {
+                    buildStatus = buildStatus ?: 'SUCCESS'
+
+                    def buildColor
+
+                    if (buildStatus == 'STARTED') {
+                        color = '#D4DADF'
+                    } else if (buildStatus == 'SUCCESS') {
+                        color = '#BDFFC3'
+                    } else if (buildStatus == 'UNSTABLE') {
+                        color = '#FFFE89'
+                    } else {
+                        color = '#FF9FA1'
+                    }
+
+                    def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+
+                        slackSend teamDomain: 'domain',
+                            channel: '#mgs-qa-jenkins-military',
+                            token: slackCredentials,
+                            //color: color,
+                            message: msg
+                    }
+                    //notifySlack()
+                    // Existing build steps.
+                } catch (e) {
+                    //currentBuild.result = 'FAILURE'
+                    //throw e
+                } finally {
+                    //notifySlack(currentBuild.result)
+                }
+            }
+        }
+    }
+
+}

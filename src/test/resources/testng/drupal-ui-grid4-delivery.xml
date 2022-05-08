@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Test Suite Military.com" verbose="10" parallel="classes" thread-count="1" time-out="11080000">
+
+    <listeners>
+        <listener class-name="mgs.qa.testng.PriorityListener"/>
+        <listener class-name="com.epam.reportportal.testng.ReportPortalTestNGListener"/>
+        <listener class-name="mgs.qa.testng.AnnotationTransformer"/>
+        <listener class-name="mgs.qa.testng.TestReporter"/>
+    </listeners>
+
+    <parameter name="TYPE" value="local"/>
+    <parameter name="BROWSER" value="chrome"/>
+    <parameter name="HUB" value="http://mgs-qa-k8s-harbor201.be.monster.com:32444/wd/hub"/>
+    <parameter name="ENV" value="MILQA"/>
+
+    <test name="www.military.com Drupal tests">
+
+        <parameter name="RunTestsWithPriority" value="Critical, Normal, High, Medium"/>
+
+        <classes>
+            <class name="military.drupal.ui.content_menu.TC250661_Edit_An_Article_Set_UnPublish_On_Date_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250662_Edit_An_Article_Set_Publish_On_Date_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250657_Create_A_Webinar_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250663_Create_An_Article_Advertorial_Test"/> <!-- to re launch with debug -->
+            <class name="military.drupal.ui.content_menu.Create_Edit_Delete_Sidebar_Components_Add_Listview_Test"/>
+            <class name="military.drupal.ui.structure_menu.structure_menu_desktop.TC250652_Create_Sidebar_Add_Featured_Article_Test"/>
+            <class name="military.drupal.ui.structure_menu.structure_menu_desktop.TC250024_Create_Sidebar_With_Blocks_Test"/>
+            <class name="military.drupal.ui.structure_menu.structure_menu_desktop.TC250580_Create_Sidebar_Add_Responsive_Image_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250654_Create_Sidebar_Components_Add_Social_Link_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250653_Create_Sidebar_Components_Add_Audio_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250578_Create_Sidebar_Add_Feed_For_Employer_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250650_Create_Sidebar_Components_Add_Block_Not_Used_In_Sidebar_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250631_Create_Sidebar_Add_List_Of_Links_Landing_Page_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250579_Create_Sidebar_Components_Add_Slideshow_Test"/>
+            <class name="military.drupal.ui.structure_menu.structure_menu_desktop.TC250557_Create_Sidebar_Add_Facebook_Feed_Embed_Test"/>
+        </classes>
+
+    </test>
+
+</suite>

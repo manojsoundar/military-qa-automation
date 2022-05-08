@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.military</groupId>
+    <artifactId>qa</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Military</name>
+    <description>Military.com Test Automation Module</description>
+
+    <scm>
+        <url>https://github.com/Monster-OCS/mgs-qa-military</url>
+    </scm>
+
+    <properties>
+        <java.version>11</java.version>
+        <source>${java.version}</source>
+        <target>${java.version}</target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <doclint>none</doclint>
+
+        <surefire.version>3.0.0-M5</surefire.version>
+
+        <commons.version>0.0.7-SNAPSHOT</commons.version>
+        <ocs.commons.version>0.0.2-SNAPSHOT</ocs.commons.version>
+
+        <suiteXml>src/test/resources/testng/blank/blank.xml</suiteXml>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <excludePackageNames>*.tests.*</excludePackageNames>
+                    <debug>true</debug>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <!-- Necessary to set for new version of TestNG -->
+                    <argLine>-Dtestng.dtd.http=true -Xmx1024m</argLine>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${suiteXml}</suiteXmlFile>
+                    </suiteXmlFiles>
+
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <!-- Necessary to set for new version of TestNG -->
+                    <argLine>-Dtestng.dtd.http=true</argLine>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${suiteXml}</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    <distributionManagement>
+        <repository>
+            <id>mgs-qa-ocs-releases</id>
+            <name>MGS QA OCS Artifactory Repo</name>
+            <url>${jfrog.base.url}/mgs-qa-ocs</url>
+        </repository>
+        <snapshotRepository>
+            <id>mgs-qa-ocs-snapshots</id>
+            <name>MGS QA OCS Artifactory Repo</name>
+            <url>${jfrog.base.url}/mgs-qa-ocs</url>
+        </snapshotRepository>
+    </distributionManagement>
+    <repositories>
+        <repository>
+            <id>mgs-qa-ocs-releases</id>
+            <url>${jfrog.base.url}/mgs-qa-ocs</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>mgs-qa-ocs-snapshots</id>
+            <url>${jfrog.base.url}/mgs-qa-ocs</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.monster.mgs.qa</groupId>
+            <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.monster.mgs.qa.ocs</groupId>
+            <artifactId>commons</artifactId>
+            <version>${ocs.commons.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Test Suite Military.com" verbose="10" parallel="classes" thread-count="1" time-out="11080000">
+
+    <listeners>
+        <listener class-name="mgs.qa.testng.PriorityListener"/>
+        <listener class-name="com.epam.reportportal.testng.ReportPortalTestNGListener"/>
+        <listener class-name="mgs.qa.testng.AnnotationTransformer"/>
+        <listener class-name="mgs.qa.testng.TestReporter"/>
+    </listeners>
+
+    <parameter name="TYPE" value="remote"/>
+    <parameter name="BROWSER" value="chrome"/>
+    <parameter name="HUB" value="http://mgs-qa-k8s-harbor201.be.monster.com:32444/wd/hub"/>
+    <parameter name="ENV" value="MILQA"/>
+
+    <test name="www.military.com Drupal tests">
+        <parameter name="RunTestsWithPriority" value="Critical, Normal, High, Medium"/>
+        <classes>
+            <!--<class name="military.drupal.ui.content_menu.TC250023_Create_a_Landing_Page_with_Components_Test"/>
+            <class name="military.drupal.ui.content_menu.TC249657_Create_A_Slideshow_Existing_Images_Test"/>
+            <class name="military.drupal.ui.content_menu.Create_A_Newsletter_Military_Report_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250653_Create_Sidebar_Components_Add_Audio_Test"/>
+            <class name="military.drupal.ui.content_menu.Create_Edit_Delete_Sidebar_Components_Add_Listview_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250579_Create_Sidebar_Components_Add_Slideshow_Test"/>
+            <class name="military.drupal.ui.content_menu.TC249727_Update_Discount_Expire_A_Discount_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250662_Edit_An_Article_Set_Publish_On_Date_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250654_Create_Sidebar_Components_Add_Social_Link_Test"/>
+            <class name="military.drupal.ui.content_menu.TC249869_Edit_A_Brightcove_Curated_List_Include_Articles_Videos_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250555_Sidebar_Components_Add_Image_Test"/>
+            <class name="military.drupal.ui.content_menu.TC249875_Create_Curated_List_Test"/>
+            <class name="military.drupal.ui.content_menu.TC250661_Edit_An_Article_Set_UnPublish_On_Date_Test"/>-->
+
+            <class name="military.drupal.ui.content_menu.Create_An_Article_Test"/>
+            <class name="military.drupal.ui.content_menu.TC249723_Create_Discount_Custom_Disclaimer_Test"/>
+
+
+        </classes>
+    </test>
+
+</suite>

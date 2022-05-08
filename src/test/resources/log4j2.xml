@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="com.epam.ta.reportportal.log4j.appender" status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] [%tid] [%-5p] [%c.%M(%F:%L)] - %m%n"/>
+        </Console>
+        <ReportPortalLog4j2Appender name="ReportPortalAppender">
+            <PatternLayout pattern="%d [%t] %-5level %logger{36} - %msg%n%throwable"/>
+        </ReportPortalLog4j2Appender>
+    </Appenders>
+    <Loggers>
+
+<!--                <Logger level="error" name="org.apache.http.wire">-->
+<!--                    <AppenderRef ref="Console"/>-->
+<!--                </Logger>-->
+
+<!--        <Logger level="error" name="io.restassured.http">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--        </Logger>-->
+
+<!--        <Logger level="error" name="org.littleshoot">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--        </Logger>-->
+
+<!--        <Logger level="error" name="com.browserup">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--        </Logger>-->
+
+<!--        <Logger level="error" name="io.netty">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--        </Logger>-->
+
+<!--        <Logger level="debug" name="com.github.dzieciou">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--        </Logger>-->
+
+<!--        <Logger name="com.epam.reportportal.service" level="WARN" additivity="false">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="ReportPortalAppender"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="com.epam.reportportal.utils" level="WARN" additivity="false">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="ReportPortalAppender"/>-->
+<!--        </Logger>-->
+
+<!--        <Root level="debug">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="ReportPortalAppender"/>-->
+<!--        </Root>-->
+
+        <Logger level="error" name="org.apache.http.wire">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger level="error" name="io.restassured.http">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger level="error" name="org.littleshoot">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger level="error" name="com.browserup">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger level="error" name="io.netty">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger level="debug" name="com.github.dzieciou">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="com.epam.reportportal.service" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="ReportPortalAppender"/>
+        </Logger>
+        <Logger name="com.epam.reportportal.utils" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="ReportPortalAppender"/>
+        </Logger>
+
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="ReportPortalAppender"/>
+        </Root>
+
+    </Loggers>
+</Configuration>
