@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <doclint>none</doclint>
 
-        <surefire.version>3.0.0-M5</surefire.version>
+        <surefire.version>3.0.0-M6</surefire.version>
 
         <commons.version>0.0.7-SNAPSHOT</commons.version>
         <ocs.commons.version>0.0.2-SNAPSHOT</ocs.commons.version>
